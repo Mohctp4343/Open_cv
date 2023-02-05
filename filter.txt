@@ -4,7 +4,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/core.hpp>
 
-cv::Mat1f windowed_img(cv::Mat1f image, int i, int j, int k_size) // вспомогательная функция, вырезающая из картинки окно размером с фильтр
+cv::Mat1f windowed_img(cv::Mat1f image, int i, int j, int k_size) // function which creates a NxN window from original image with (NxN - filter's dimensions)
 {
     cv::Mat1f window(k_size, k_size, CV_8UC1);
     for (int l = 1; l < k_size; l++)
@@ -22,16 +22,16 @@ cv::Mat1f windowed_img(cv::Mat1f image, int i, int j, int k_size) // вспомогател
 
 int main()
 {
-    int k_size = 5; // размер фильтра NxN 
+    int k_size = 5; // NxN - filter's dimensions 
 
-    cv::Mat1f img = cv::imread("/Fox.jpeg", cv::IMREAD_GRAYSCALE); // чтение картинки или арта
+    cv::Mat1f img = cv::imread("/Fox.jpeg", cv::IMREAD_GRAYSCALE); // reading image or art
     //cv::Mat1f img = cv::imread("/Art.jpeg", cv::IMREAD_GRAYSCALE);
 
-    cv::Mat1f kernel(k_size, k_size, 0.04f); // матрица фильтра с коэффициентами 1/25
+    cv::Mat1f kernel(k_size, k_size, 0.04f); // filter's matrix with coefficients 1/25
 
-    cv::namedWindow("Исходное изображение", cv::WINDOW_NORMAL);
-    cv::namedWindow("Изображение после паддинга", cv::WINDOW_NORMAL);
-    cv::namedWindow("Изображение после фильтра", cv::WINDOW_NORMAL);
+    cv::namedWindow("Original image", cv::WINDOW_NORMAL);
+    //cv::namedWindow("Image after padding", cv::WINDOW_NORMAL);
+    cv::namedWindow("Image after filtration", cv::WINDOW_NORMAL);
 
     // kernel << 0.04, 0.04, 0.04, 0.04, 0.04, 
     //     0.04, 0.04, 0.04, 0.04, 0.04,
@@ -39,30 +39,30 @@ int main()
     //     0.04, 0.04, 0.04, 0.04, 0.04,
     //     0.04, 0.04, 0.04, 0.04, 0.04;
 
-    cv::Mat1f padd_img(img.rows + k_size - 1, img.cols + k_size - 1, CV_8UC1); // паддинг нулями
+    cv::Mat1f padd_img(img.rows + k_size - 1, img.cols + k_size - 1, CV_8UC1); // zero padding
     for (int i = 1; i < img.rows; i++)
         for (int j = 1; j < img.cols; j++)
 
             padd_img(i + (k_size - 1) / 2, j + (k_size - 1) / 2) = img(i, j);
 
 
-    cv::Mat1f filtered_img(img.rows + (k_size - 1) / 2, img.cols + (k_size - 1) / 2); // свертка 
+    cv::Mat1f filtered_img(img.rows + (k_size - 1) / 2, img.cols + (k_size - 1) / 2); // convolution 
     for (int i = 1; i < padd_img.rows - (k_size - 1); i++)
         for (int j = 1; j < padd_img.cols - (k_size - 1); j++)
         {
-            cv::Mat production = kernel.mul(windowed_img(padd_img, i, j, k_size)); // поэлементное произведение
-            filtered_img(i + (k_size - 1) / 2, j + (k_size - 1) / 2) = round(cv::sum(production)[0]); // суммирование всех элементов в центральную ячейку
+            cv::Mat production = kernel.mul(windowed_img(padd_img, i, j, k_size)); // element-wise production
+            filtered_img(i + (k_size - 1) / 2, j + (k_size - 1) / 2) = round(cv::sum(production)[0]); // summing value of all elements and writing them to the center element
 
         }
 
-    cv::Mat1f new_img(img.rows, img.cols); // цикл для обрезания нулевых строк и столбцов
+    cv::Mat1f new_img(img.rows, img.cols); // slicing zero rows and cols
     for (int i = 1; i < img.rows; i++)
         for (int j = 1; j < img.cols; j++)
             new_img(i, j) = filtered_img(i + (k_size - 1) / 2, j + (k_size - 1) / 2);
 
-    cv::imshow("Исходное изображение", img); // вывод изображений
-    cv::imshow("Изображение после паддинга", padd_img);
-    cv::imshow("Изображение после фильтра", new_img);
+    cv::imshow("Original image", img); // showing images
+    //cv::imshow("Image after padding", padd_img);
+    cv::imshow("Image after filtration", new_img);
 
     cv::waitKey(0);
 
