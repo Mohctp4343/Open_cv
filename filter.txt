@@ -24,8 +24,9 @@ int main()
 {
     int k_size = 5; // NxN - filter's dimensions 
 
-    cv::Mat1f img = cv::imread("/Fox.jpeg", cv::IMREAD_GRAYSCALE); // reading image or art
-    //cv::Mat1f img = cv::imread("/Art.jpeg", cv::IMREAD_GRAYSCALE);
+    cv::Mat1f img = cv::imread("/Fox.jpeg", cv::IMREAD_GRAYSCALE); // reading image or art or photo
+    //cv::Mat1f img = cv::imread("/Art.jpg", cv::IMREAD_GRAYSCALE);
+    //cv::Mat1f img = cv::imread("/Photo.jpg", cv::IMREAD_GRAYSCALE);
 
     cv::Mat1f kernel(k_size, k_size, 0.04f); // filter's matrix with coefficients 1/25
 
