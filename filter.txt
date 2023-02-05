@@ -1,0 +1,69 @@
+#include <iostream>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/core/core.hpp>
+
+cv::Mat1f windowed_img(cv::Mat1f image, int i, int j, int k_size) // вспомогательная функция, вырезающая из картинки окно размером с фильтр
+{
+    cv::Mat1f window(k_size, k_size, CV_8UC1);
+    for (int l = 1; l < k_size; l++)
+    {
+        for (int m = 1; m < k_size; m++)
+        {
+            window(l, m) = image(i, j);
+            j++;
+        }
+        j = j - k_size;
+        i++;
+    }
+    return window;
+}
+
+int main()
+{
+    int k_size = 5; // размер фильтра NxN 
+
+    cv::Mat1f img = cv::imread("/Fox.jpeg", cv::IMREAD_GRAYSCALE); // чтение картинки или арта
+    //cv::Mat1f img = cv::imread("/Art.jpeg", cv::IMREAD_GRAYSCALE);
+
+    cv::Mat1f kernel(k_size, k_size, 0.04f); // матрица фильтра с коэффициентами 1/25
+
+    cv::namedWindow("Исходное изображение", cv::WINDOW_NORMAL);
+    cv::namedWindow("Изображение после паддинга", cv::WINDOW_NORMAL);
+    cv::namedWindow("Изображение после фильтра", cv::WINDOW_NORMAL);
+
+    // kernel << 0.04, 0.04, 0.04, 0.04, 0.04, 
+    //     0.04, 0.04, 0.04, 0.04, 0.04,
+    //     0.04, 0.04, 0.04, 0.04, 0.04,
+    //     0.04, 0.04, 0.04, 0.04, 0.04,
+    //     0.04, 0.04, 0.04, 0.04, 0.04;
+
+    cv::Mat1f padd_img(img.rows + k_size - 1, img.cols + k_size - 1, CV_8UC1); // паддинг нулями
+    for (int i = 1; i < img.rows; i++)
+        for (int j = 1; j < img.cols; j++)
+
+            padd_img(i + (k_size - 1) / 2, j + (k_size - 1) / 2) = img(i, j);
+
+
+    cv::Mat1f filtered_img(img.rows + (k_size - 1) / 2, img.cols + (k_size - 1) / 2); // свертка 
+    for (int i = 1; i < padd_img.rows - (k_size - 1); i++)
+        for (int j = 1; j < padd_img.cols - (k_size - 1); j++)
+        {
+            cv::Mat production = kernel.mul(windowed_img(padd_img, i, j, k_size)); // поэлементное произведение
+            filtered_img(i + (k_size - 1) / 2, j + (k_size - 1) / 2) = round(cv::sum(production)[0]); // суммирование всех элементов в центральную ячейку
+
+        }
+
+    cv::Mat1f new_img(img.rows, img.cols); // цикл для обрезания нулевых строк и столбцов
+    for (int i = 1; i < img.rows; i++)
+        for (int j = 1; j < img.cols; j++)
+            new_img(i, j) = filtered_img(i + (k_size - 1) / 2, j + (k_size - 1) / 2);
+
+    cv::imshow("Исходное изображение", img); // вывод изображений
+    cv::imshow("Изображение после паддинга", padd_img);
+    cv::imshow("Изображение после фильтра", new_img);
+
+    cv::waitKey(0);
+
+}
