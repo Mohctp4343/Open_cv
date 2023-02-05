@@ -28,7 +28,7 @@ int main()
     //cv::Mat1f img = cv::imread("/Art.jpg", cv::IMREAD_GRAYSCALE);
     //cv::Mat1f img = cv::imread("/Photo.jpg", cv::IMREAD_GRAYSCALE);
 
-    cv::Mat1f kernel(k_size, k_size, 0.04f); // filter's matrix with coefficients 1/25
+    cv::Mat1f kernel(k_size, k_size, 1/(k_size*k_size)); // filter's matrix with coefficients 1/25
 
     cv::namedWindow("Original image", cv::WINDOW_NORMAL);
     //cv::namedWindow("Image after padding", cv::WINDOW_NORMAL);
