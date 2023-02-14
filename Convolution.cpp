@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <stdlib.h>
+#include <cmath>
  
 using namespace std;
 
@@ -13,6 +14,39 @@ uint8_t** array_gen(int sz_x, int sz_y) // array initialization
         array[i] = new uint8_t[sz_x];
     }
     return array;
+}
+
+
+void array_del_int(uint8_t** array, int sz_y) // array deleting 
+{
+    for (int i = 0; i < sz_y; i++)
+    {
+        delete [] array[i] ;
+    }
+    delete[] array;
+}
+
+
+void array_del_double(double** array, int sz_y) // array deleting 
+{
+    for (int i = 0; i < sz_y; i++)
+    {
+        delete[] array[i];
+    }
+    delete[] array;
+}
+
+void array_output(uint8_t** array, int sz_x, int sz_y) // array output on console
+{
+    for (int i = 0; i < sz_y; i++)
+    {
+        for (int j = 0; j < sz_x; j++)
+        {
+            cout << setw(4) << (int)array[i][j];
+        }
+        cout << endl;
+    }
+    cout << endl;
 }
 
 
@@ -39,7 +73,7 @@ uint8_t** window(uint8_t** array, int i, int j, int k_filter) // window (k_filte
 }
 
 
-uint8_t** production(uint8_t** array_1, float** array_2, int sz_x, int sz_y) // element-wise array multiplication
+uint8_t** production(uint8_t** array_1, double** array_2, int sz_x, int sz_y) // element-wise array multiplication
 {
     uint8_t** array_pr = array_gen(sz_x, sz_y);
     for (int m = 0; m < sz_y; m++)
@@ -69,10 +103,10 @@ uint8_t summary(uint8_t** array, int sz_x, int sz_y) // sum of all elements in a
 
 void filter2d(uint8_t** array, int sz_x, int sz_y, int k_filter) // filtering function
 {
-    float **kernel = new float* [k_filter];
+    double **kernel = new double* [k_filter];
     for (int i = 0; i < k_filter; i++)
     {
-        kernel[i] = new float[k_filter];
+        kernel[i] = new double[k_filter];
     }
 
     for (int i = 0; i < k_filter; i++)
@@ -83,55 +117,27 @@ void filter2d(uint8_t** array, int sz_x, int sz_y, int k_filter) // filtering fu
         }
     }
 
-    uint8_t** array_filtered = array_gen(sz_x, sz_y);
-    for (int i = 0; i < sz_y; i++)
-    {
-        for (int j = 0; j < sz_x; j++)
-        {
-            array_filtered[i][j] = array[i][j];
-        }
-    }
-
     for (int i = 0; i < sz_y - k_filter + 1; i++)
     {
         for (int j = 0; j < sz_x - k_filter + 1; j++)
         {
-            array_filtered[i + (k_filter - 1) / 2][j + (k_filter - 1) / 2] = summary(production(window(array, i, j, k_filter), kernel, k_filter, k_filter), k_filter, k_filter);
+            array[i + (k_filter - 1) / 2][j + (k_filter - 1) / 2] = summary(production(window(array, i, j, k_filter), kernel, k_filter, k_filter), k_filter, k_filter);
+            //array[i + (k_filter - 1) / 2][j + (k_filter - 1) / 2] = (uint8_t)round(summary(window(array, i, j, k_filter), k_filter, k_filter) / (k_filter * k_filter));
         }
     }
 
-    cout << "Original array" << endl;
-    for (int i = 0; i < sz_y; i++)
-    {
-        for (int j = 0; j < sz_x; j++)
-        {
-            cout << setw(4) << (int)array[i][j];
-        }
-        cout << endl;
-    }
-    cout << endl;
+    //cout << "Kernel" << endl;
+    //for (int i = 0; i < k_filter; i++)
+    //{
+    //    for (int j = 0; j < k_filter; j++)
+    //    {
+    //        cout << fixed << setprecision(2) << setw(6) << (double)kernel[i][j];
+    //    }
+    //    cout << endl;
+    //}
+    //cout << endl;
 
-    cout << "Kernel" << endl;
-    for (int i = 0; i < k_filter; i++)
-    {
-        for (int j = 0; j < k_filter; j++)
-        {
-            cout << fixed << setprecision(2) << setw(6) << (float)kernel[i][j];
-        }
-        cout << endl;
-    }
-    cout << endl;
-
-    cout << "Filtered array" << endl;
-    for (int i = 0; i < sz_y; i++) 
-    {
-        for (int j = 0; j < sz_x; j++) 
-        {
-            cout << setw(4) << (int)array_filtered[i][j];
-        }
-        cout << endl;
-    }
-    cout << endl; 
+    array_del_double(kernel, k_filter);
 }
 
 
@@ -145,14 +151,21 @@ int main()
     uint8_t** array = array_gen(sz_x, sz_y); 
     //srand(time(NULL)); // random starting point for values 
 
-    for (int i = 0; i < sz_x; i++)
+    for (int i = 0; i < sz_y; i++)
     {
-        for (int j = 0; j < sz_y; j++)
+        for (int j = 0; j < sz_x; j++)
         {
             array[i][j] = random(0, range);
         }
     }
 
+    cout << "Original array" << endl;
+    array_output(array, sz_x, sz_y);
+
     filter2d(array, sz_x, sz_y, k_filter); 
 
+    cout << "Filtered array" << endl;
+    array_output(array, sz_x, sz_y);
+
+    array_del_int(array, sz_y);
 }
