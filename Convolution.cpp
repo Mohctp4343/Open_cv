@@ -3,6 +3,12 @@
 #include <iomanip>
 #include <stdlib.h>
 #include <cmath>
+
+#define __CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+
  
 using namespace std;
 
@@ -27,15 +33,6 @@ void array_del_int(uint8_t** array, int sz_y) // array deleting
 }
 
 
-void array_del_double(double** array, int sz_y) // array deleting 
-{
-    for (int i = 0; i < sz_y; i++)
-    {
-        delete[] array[i];
-    }
-    delete[] array;
-}
-
 void array_output(uint8_t** array, int sz_x, int sz_y) // array output on console
 {
     for (int i = 0; i < sz_y; i++)
@@ -56,40 +53,36 @@ int random(int min_range, int max_range) // random values from min_range to max_
 }
 
 
-uint8_t** window(uint8_t** array, int i, int j, int k_filter) // window (k_filter * k_filter) from original array
+void window(uint8_t** array_in, uint8_t** array_out, int i, int j, int k_filter) // window (k_filter * k_filter) from original array
 {
-    uint8_t** array_sup = array_gen(k_filter, k_filter);
     for (int k1 = 0; k1 < k_filter; k1++)
     {
         for (int k2 = 0; k2 < k_filter; k2++)
         {
-            array_sup[k1][k2] = array[i][j];
+            array_out[k1][k2] = array_in[i][j];
             j++;
         }
         j = j - k_filter;
         i++;
     }
-    return array_sup;
 }
 
 
-uint8_t** production(uint8_t** array_1, double** array_2, int sz_x, int sz_y) // element-wise array multiplication
+void production(uint8_t** array_in, uint8_t** array_out, double** kernel, int sz_x, int sz_y) // element-wise array multiplication
 {
-    uint8_t** array_pr = array_gen(sz_x, sz_y);
     for (int m = 0; m < sz_y; m++)
     {
         for (int n = 0; n < sz_x; n++)
         {
-            array_pr[m][n] = (uint8_t)round(array_1[m][n] * array_2[m][n]);
+            array_out[m][n] = (uint8_t)round(array_in[m][n] * kernel[m][n]);
         }
     }
-    return array_pr;
 }
 
 
-uint8_t summary(uint8_t** array, int sz_x, int sz_y) // sum of all elements in array
+double summary(uint8_t** array, int sz_x, int sz_y) // sum of all elements in array
 {
-    uint8_t sum = 0;
+    double sum = 0;
     for (int m = 0; m < sz_y; m++)
     {
         for (int n = 0; n < sz_x; n++)
@@ -97,47 +90,25 @@ uint8_t summary(uint8_t** array, int sz_x, int sz_y) // sum of all elements in a
             sum = sum + array[m][n];
         }
     }
-    return sum;
+    return sum / (sz_x * sz_y);
 }
 
 
 void filter2d(uint8_t** array, int sz_x, int sz_y, int k_filter) // filtering function
 {
-    double **kernel = new double* [k_filter];
-    for (int i = 0; i < k_filter; i++)
-    {
-        kernel[i] = new double[k_filter];
-    }
 
-    for (int i = 0; i < k_filter; i++)
-    {
-        for (int j = 0; j < k_filter; j++)
-        {
-            kernel[i][j] = 1.0/(k_filter * k_filter);
-        }
-    }
+    uint8_t** array_sup = array_gen(k_filter, k_filter);
 
     for (int i = 0; i < sz_y - k_filter + 1; i++)
     {
         for (int j = 0; j < sz_x - k_filter + 1; j++)
         {
-            array[i + (k_filter - 1) / 2][j + (k_filter - 1) / 2] = summary(production(window(array, i, j, k_filter), kernel, k_filter, k_filter), k_filter, k_filter);
-            //array[i + (k_filter - 1) / 2][j + (k_filter - 1) / 2] = (uint8_t)round(summary(window(array, i, j, k_filter), k_filter, k_filter) / (k_filter * k_filter));
+            window(array, array_sup, i, j, k_filter);
+            array[i + (k_filter - 1) / 2][j + (k_filter - 1) / 2] = (uint8_t)round(summary(array_sup, k_filter, k_filter));
         }
     }
 
-    //cout << "Kernel" << endl;
-    //for (int i = 0; i < k_filter; i++)
-    //{
-    //    for (int j = 0; j < k_filter; j++)
-    //    {
-    //        cout << fixed << setprecision(2) << setw(6) << (double)kernel[i][j];
-    //    }
-    //    cout << endl;
-    //}
-    //cout << endl;
-
-    array_del_double(kernel, k_filter);
+    array_del_int(array_sup, k_filter);
 }
 
 
@@ -168,4 +139,6 @@ int main()
     array_output(array, sz_x, sz_y);
 
     array_del_int(array, sz_y);
+
+    _CrtDumpMemoryLeaks();
 }
