@@ -166,14 +166,14 @@ int main()
         }
         if (str == operations[5])
         {
-            value = cbuf.buf_read();
-            if (0 == value)
+            read_value = cbuf.buf_read();
+            if (0 == read_value)
             {
                 cout << "Reading error - buffer is empty" << endl;
             }
             else
             {
-                cout << "The value is - " << value << endl;
+                cout << "The value is - " << read_value << endl;
             }
         }
         if (str == operations[6])
